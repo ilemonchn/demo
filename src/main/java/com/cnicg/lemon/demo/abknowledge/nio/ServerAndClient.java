@@ -2,8 +2,11 @@ package com.cnicg.lemon.demo.abknowledge.nio;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.AbstractSelectableChannel;
 import java.nio.charset.Charset;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +21,7 @@ public class ServerAndClient {
         Executors.newCachedThreadPool().submit(() -> {
             try {
                 ServerSocketChannel ssc = ServerSocketChannel.open();
+                register(ssc);
                 ssc.bind(new InetSocketAddress(HOST, PORT));
                 while (true) {
                     SocketChannel socketChannel = ssc.accept();
@@ -67,6 +71,13 @@ public class ServerAndClient {
         }
 
 
+    }
+
+
+    public static void register(AbstractSelectableChannel channel) throws Exception {
+        //macOS默认为KQueueSelectorImpl, KQueue与Epoll非常类似
+        Selector selector = Selector.open();
+        channel.register(selector, SelectionKey.OP_CONNECT);
     }
 
 
